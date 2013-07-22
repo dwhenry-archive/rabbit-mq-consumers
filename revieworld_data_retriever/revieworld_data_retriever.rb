@@ -1,10 +1,11 @@
 require 'amqp'
 require 'json'
-require 'net/http'
+require 'tire'
+require 'torque'
 
-
-class RevieworldDataRetriever
-  QUEUE_NAME  = "revieworld.data-requester"
+class ReviewElasticSearchWriter
+  TOPIC_NAME  = 'revieworld.data-request'
+  QUEUE_NAME  = 'revieworld.data-request'
   ROUTING_KEY = 'revieworld.data-request.*'
 
   DATA_REQUEST_TOPIC_NAME = 'revieworld.data-request'
@@ -12,15 +13,20 @@ class RevieworldDataRetriever
   def process(url_specification)
     url = url_for(
       controller: url_specification['class'],
-      id: url_specification[:conditions][:id],
-      format: url_specification[:format]
+      id: url_specification['conditions']['id'],
+      format: url_specification['format']
     )
     Net::HTTP.get(URI.parse(url))
   end
 
-  def exchange
-    @exchange = channel.topic(DATA_REQUEST_TOPIC_NAME, auto_delete: false)
+  def url_for(options)
+    ''
   end
+
+  def exchange
+    @exchange ||= channel.topic(TOPIC_NAME, auto_delete: true)
+  end
+
 # extract..
 
   attr_reader :channel
@@ -37,31 +43,24 @@ class RevieworldDataRetriever
   end
 
   def run!
-    channel.queue(QUEUE_NAME).delete
     channel.queue(QUEUE_NAME) do |queue|
-      puts 'www'
-      queue.bind(exchange, routing_key: ROUTING_KEY).subscribe do |payload|
-        puts 'www2'
-        process JSON.parse(payload)
+      queue.bind(exchange, routing_key: ROUTING_KEY).subscribe(:ack => true) do |metadata, review_identifier|
+        begin
+          @channel.default_exchange.publish(
+            process(review_identifier),
+            :routing_key    => metadata.reply_to,
+            :correlation_id => metadata.message_id,
+            :mandatory      => true
+          )
+
+          metadata.ack
+
+        rescue => e
+          binding.pry
+          raise
+        end
       end
     end
-
-    # channel.queue(QUEUE_NAME) do |queue|
-    #   puts 'www'
-    #   requests_queue.bind(reply_exchange, routing_key: ROUTING_KEY).subscribe do |payload|
-    #     puts 'aaa'
-    #     process JSON.parse(payload)
-
-    #     # metadata.ack
-    #   end
-    # end
-    # channel.queue(QUEUE_NAME) do |queue|
-    #   queue.bind(exchange, routing_key: ROUTING_KEY).subscribe do |review_identifier|
-    #     puts 'aaa'
-    #     binding.pry
-    #     process JSON.parse(review_identifier)
-    #   end
-    # end
   rescue Interrupt => e
     puts 'Bye bye!'
     EM.next_tick { AMQP.exit }
@@ -69,7 +68,4 @@ class RevieworldDataRetriever
   end
 
 
-  def reply_exchange
-    channel.topic(DATA_REQUEST_TOPIC_NAME)
-  end
 end
