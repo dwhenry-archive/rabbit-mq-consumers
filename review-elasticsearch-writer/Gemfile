@@ -1,0 +1,13 @@
+source 'https://rubygems.org'
+source 'http://gems'
+gem 'rspec'
+gem 'evented-spec'
+gem 'json'
+gem 'amqp'
+gem 'tire'
+gem 'torque'
+gem 'activesupport'
+gem 'net/http'
+
+gem 'pry'
+gem 'pry-nav'
