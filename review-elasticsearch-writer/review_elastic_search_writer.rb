@@ -8,6 +8,8 @@ class ReviewElasticSearchWriter
   QUEUE_NAME  = 'elasticsearch.review.writer'
   ROUTING_KEY = 'review.*'
 
+  DATA_REQUEST_TOPIC_NAME = 'revieworld.data-request'
+
   def process(review_identifier)
     message = revieworld_data(class: :reviews, conditions: review_identifier, format: :torque) do |torque_data|
       Torque.to('reviews', torque_data)
@@ -50,13 +52,17 @@ class ReviewElasticSearchWriter
       replies_queue.subscribe do |metadata, payload|
         yield(JSON.parse(payload))
       end
-      channel.default_exchange.publish(
+
+      reply_exchange.publish(
         query.to_json,
         :routing_key => "revieworld.data-request.#{query[:class]}",
         :message_id  => Kernel.rand(10101010).to_s,
         :reply_to    => replies_queue.name
       )
     end
+  end
 
+  def reply_exchange
+    channel.topic(DATA_REQUEST_TOPIC_NAME)
   end
 end

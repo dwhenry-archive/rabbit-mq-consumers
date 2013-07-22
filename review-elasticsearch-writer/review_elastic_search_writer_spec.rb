@@ -31,9 +31,10 @@ describe 'It writes data to torque' do
   end
 
   def subsitute_revieworld_data(matcher, response)
-    requests_queue = @channel.queue("revieworld.data-request.#{matcher[:class]}", :exclusive => true, :auto_delete => true)
+    requests_queue = @channel.queue("revieworld.data-request", :exclusive => true, :auto_delete => true)
+
     # requests_queue = @channel.queue("revieworld.data-request", :exclusive => true, :auto_delete => true)
-    requests_queue.subscribe(:ack => true) do |metadata, payload|
+    requests_queue.bind(reply_exchange, routing_key: "revieworld.data-request.*").subscribe(:ack => true) do |metadata, payload|
       @channel.default_exchange.publish(response.to_json,
                                        :routing_key    => metadata.reply_to,
                                        :correlation_id => metadata.message_id,
@@ -41,5 +42,9 @@ describe 'It writes data to torque' do
 
       metadata.ack
     end
+  end
+
+  def reply_exchange
+    @channel.topic(ReviewElasticSearchWriter::DATA_REQUEST_TOPIC_NAME)
   end
 end
