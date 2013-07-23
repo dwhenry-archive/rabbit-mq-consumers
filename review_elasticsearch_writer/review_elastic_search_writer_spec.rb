@@ -16,16 +16,18 @@ describe 'It writes data to torque' do
   end
 
   it 'will add record to elasticsearch' do
+    # @channel.queue(ReviewElasticSearchWriter::QUEUE_NAME).delete
+
     subsitute_revieworld_data({class: :reviews, format: :torque}, message)
 
-    ReviewElasticSearchWriter.new(@channel).run!
+    ReviewElasticSearchWriter.new(@channel, log_level: :info).run!
     Torque.should_receive(:to).with('reviews', message)
 
     @exchange.publish({id: 14}.to_json, :key => 'review.create')
 
-    done(0.2) {
+    done(2) {
       # After #done is invoked, it launches an optional callback
-      @channel.queue(ReviewElasticSearchWriter::QUEUE_NAME).delete
+      # @channel.queue(ReviewElasticSearchWriter::QUEUE_NAME).delete
       # Here goes the main check
     }
   end
