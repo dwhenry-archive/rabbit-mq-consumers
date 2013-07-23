@@ -3,24 +3,24 @@ require 'json'
 require 'tire'
 require 'torque'
 
-class ReviewElasticSearchWriter
+class RevieworldDataRetriever
   TOPIC_NAME  = 'revieworld.data-request'
   QUEUE_NAME  = 'revieworld.data-request'
   ROUTING_KEY = 'revieworld.data-request.*'
 
-  DATA_REQUEST_TOPIC_NAME = 'revieworld.data-request'
-
   def process(url_specification)
-    url = url_for(
-      controller: url_specification['class'],
-      id: url_specification['conditions']['id'],
-      format: url_specification['format']
-    )
-    Net::HTTP.get(URI.parse(url))
+    while true do
+      response = Net::HTTP.get_response(url_for(url_specification))
+      return response.body if response.code =~ /2\d\d/
+      sleep(@timeout)
+    end
   end
 
   def url_for(options)
-    ''
+    # TODO: this should be implemented at some stage
+    uri = "http://revieworld.live/data_request/#{options['class']}/#{options['conditions']['id']}.#{options['format']}"
+    # puts "processing: #{uri}"
+    URI.parse(uri)
   end
 
   def exchange
@@ -38,8 +38,9 @@ class ReviewElasticSearchWriter
     end
   end
 
-  def initialize(channel)
+  def initialize(channel, options={})
     @channel = channel
+    @timeout = options[:timeout] || 30
   end
 
   def run!

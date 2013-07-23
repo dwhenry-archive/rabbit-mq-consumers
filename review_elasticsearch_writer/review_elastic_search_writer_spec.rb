@@ -25,7 +25,7 @@ describe 'It writes data to torque' do
 
     done(0.2) {
       # After #done is invoked, it launches an optional callback
-
+      @channel.queue(ReviewElasticSearchWriter::QUEUE_NAME).delete
       # Here goes the main check
     }
   end
