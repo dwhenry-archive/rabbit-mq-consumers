@@ -7,6 +7,11 @@ Dir[File.join(File.dirname(__FILE__), "rabbit_mq_consumers/**/*.rb")].each {|f| 
 
 
 module RabbitMqConsumers
+  def reset
+    @channel = nil
+    Exchanges.reset
+  end
+
   def channel
     @channel ||= AMQP::Channel.new
   end

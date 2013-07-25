@@ -1,4 +1,17 @@
-module Exchanges
+class Exchanges
+  class << self
+    delegate :revieworld_data_request, :reviews,
+      to: :instance
+
+    def instance
+      @exchanges = new
+    end
+
+    def reset
+      @exchanges = nil
+    end
+  end
+
   def default
     @default ||= ''
   end
@@ -16,6 +29,4 @@ module Exchanges
   def channel
     RabbitMqConsumers.channel
   end
-
-  extend self
 end

@@ -15,5 +15,4 @@ class Consumers
       puts message
     end
   end
-
 end

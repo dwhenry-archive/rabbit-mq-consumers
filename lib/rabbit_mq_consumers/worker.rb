@@ -10,11 +10,11 @@ class Worker
     yield self if block_given?
   end
 
-  def start(&block)
+  def start(options={}, &block)
     bg = block_given?
     channel.queue(@queue_name) do |queue|
       new_queue = bg ? block.call(queue) : queue
-      new_queue.subscribe(&@consumer.method(:handle_message))
+      new_queue.subscribe(options, &@consumer.method(:handle_message))
     end
   end
 
