@@ -1,34 +1,30 @@
-require 'rspec'
-require 'evented-spec'
-require 'pry'
-require 'pry-nav'
-require_relative 'review_elastic_search_writer'
+require 'spec_helper'
 
 describe 'It writes data to torque' do
   include EventedSpec::AMQPSpec
-  let(:message) { {'message' => 'hash'} }
+  let(:message) { {message: 'hash'} }
 
-  amqp_before do
-    # initializing amqp channel
-    @channel   = AMQP::Channel.new
-    # using default amqp exchange
-    @exchange = @channel.topic(ReviewElasticSearchWriter::TOPIC_NAME)
-  end
+   amqp_before do
+     # initializing amqp channel
+     @channel   = RabbitMqConsumers.channel
+     # using default amqp exchange
+     @exchange = Exchanges.reviews
+   end
 
   it 'will add record to elasticsearch' do
-    # @channel.queue(ReviewElasticSearchWriter::QUEUE_NAME).delete
+    #@channel.queue(Worker::ReviewElasticSearchWriter::QUEUE_NAME).delete
 
     subsitute_revieworld_data({class: :reviews, format: :torque}, message)
 
-    ReviewElasticSearchWriter.new(@channel, log_level: :info).run!
-    Torque.should_receive(:to).with('reviews', message)
+    Worker::ReviewElasticSearchWriter.new(log_level: :info, bucket_name: 'reviews-test')
+    Torque.should_receive(:to).with('reviews-test', message)
 
     @exchange.publish({id: 14}.to_json, :key => 'review.create')
 
     done(2) {
-      # After #done is invoked, it launches an optional callback
-      # @channel.queue(ReviewElasticSearchWriter::QUEUE_NAME).delete
-      # Here goes the main check
+       # After #done is invoked, it launches an optional callback
+       # @channel.queue(ReviewElasticSearchWriter::QUEUE_NAME).delete
+       # Here goes the main check
     }
   end
 
@@ -47,6 +43,6 @@ describe 'It writes data to torque' do
   end
 
   def reply_exchange
-    @channel.topic(ReviewElasticSearchWriter::DATA_REQUEST_TOPIC_NAME)
+    Exchanges.revieworld_data_request
   end
 end

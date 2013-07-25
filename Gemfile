@@ -8,6 +8,7 @@ gem 'tire'
 gem 'torque'
 gem 'activesupport'
 gem 'rack'
+gem 'celluloid'
 
 gem 'pry'
 gem 'pry-nav'
