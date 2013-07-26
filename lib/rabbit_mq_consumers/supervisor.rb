@@ -1,3 +1,9 @@
+LOG_LEVELS = {
+    info: 0,
+    warn: 1,
+    error: 2
+}
+
 class Supervisor
   def self.start_from_config(path)
     # TODO: read file.. start server

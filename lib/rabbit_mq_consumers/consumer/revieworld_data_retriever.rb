@@ -1,9 +1,9 @@
 class Consumer
-  class RevieworldDataRetriever < Consumers
+  class RevieworldDataRetriever < Consumer
     def handle_message(metadata, review_identifier)
       log(:info, "receive message from: #{metadata.reply_to}")
 
-      RabbitMqConsumers.channel.default_exchange.publish(
+      Exchanges.default.publish(
           process(review_identifier),
           :routing_key    => metadata.reply_to,
           :correlation_id => metadata.message_id,
@@ -17,10 +17,18 @@ class Consumer
       while true do
         url = url_for(url_specification)
         log(:info, "request data from: #{url}")
-        response = Net::HTTP.get_response(url)
-        log(:info, response.inspect)
-        log(:info, response.code)
-        return response.body if response.code =~ /2\d\d/
+        begin
+          response = Net::HTTP.get_response(url)
+        rescue Errno::ECONNREFUSED
+          # TODO: this should really send an email if the server is down for toooo long
+          #log(:warn, 'Server appears to be down...')
+          sleep @options.fetch(:timeout)
+          retry
+        end
+        if response.code =~ /2\d\d/
+          log(:info, "received data: #{response.body} from: #{url}")
+          return response.body
+        end
         sleep(@options.fetch(:timeout))
       end
     end

@@ -1,7 +1,14 @@
 class Producer
-  def initialize(channel, exchange)
-    @channel  = channel
+  def initialize(exchange, options={})
     @exchange = exchange
+    @log_level  = options.delete(:log_level) || :error
+    @options    = options
+  end
+
+  def log(level, message)
+    if LOG_LEVELS[level] >= LOG_LEVELS[@log_level]
+      puts "[#{level}] #{message}"
+    end
   end
 
   def publish(message, options = {})

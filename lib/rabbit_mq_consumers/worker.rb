@@ -12,9 +12,9 @@ class Worker
 
   def start(options={}, &block)
     bg = block_given?
-    channel.queue(@queue_name) do |queue|
+    channel.queue(@queue_name, options[:queue] || {}) do |queue|
       new_queue = bg ? block.call(queue) : queue
-      new_queue.subscribe(options, &@consumer.method(:handle_message))
+      new_queue.subscribe(options[:subscribe] || {}, &@consumer.method(:handle_message))
     end
   end
 

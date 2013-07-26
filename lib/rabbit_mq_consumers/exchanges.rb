@@ -1,6 +1,6 @@
 class Exchanges
   class << self
-    delegate :revieworld_data_request, :reviews,
+    delegate :revieworld_data_request, :reviews, :default,
       to: :instance
 
     def instance
@@ -13,7 +13,7 @@ class Exchanges
   end
 
   def default
-    @default ||= ''
+    @default ||= channel.default_exchange
   end
 
   def reviews

@@ -16,10 +16,10 @@ describe 'It writes data to torque' do
 
     subsitute_revieworld_data({class: :reviews, format: :torque}, message)
 
-    Worker::ReviewElasticSearchWriter.new(log_level: :info, bucket_name: 'reviews-test')
+    Worker::ReviewElasticSearchWriter.new(log_level: RSpec::LOG_LEVEL, bucket_name: 'reviews-test')
     Torque.should_receive(:to).with('reviews-test', message)
 
-    @exchange.publish({id: 14}.to_json, :key => 'review.create')
+    Producer.new(@exchange).publish({id: 14}, :key => 'review.create')
 
     done(2) {
        # After #done is invoked, it launches an optional callback
@@ -29,10 +29,10 @@ describe 'It writes data to torque' do
   end
 
   def subsitute_revieworld_data(matcher, response)
-    requests_queue = @channel.queue("revieworld.data-request", :exclusive => true, :auto_delete => true)
+    requests_queue = @channel.queue("revieworld.data-request", :auto_delete => true)
 
     # requests_queue = @channel.queue("revieworld.data-request", :exclusive => true, :auto_delete => true)
-    requests_queue.bind(reply_exchange, routing_key: "revieworld.data-request.*").subscribe(:ack => true) do |metadata, payload|
+    requests_queue.bind(Exchanges.revieworld_data_request, routing_key: "revieworld.data-request.*").subscribe(:ack => true) do |metadata, payload|
       @channel.default_exchange.publish(response.to_json,
                                        :routing_key    => metadata.reply_to,
                                        :correlation_id => metadata.message_id,
@@ -40,9 +40,5 @@ describe 'It writes data to torque' do
 
       metadata.ack
     end
-  end
-
-  def reply_exchange
-    Exchanges.revieworld_data_request
   end
 end
