@@ -28,14 +28,14 @@ describe 'I can write a review to torque' do
 
 
   def start_workers
-    Worker::ReviewElasticSearchWriter.new(log_level: RSpec::LOG_LEVEL, bucket_name: 'reviews-test')
-    Worker::RevieworldDataRetriever.new(log_level: RSpec::LOG_LEVEL, timeout: 0.1, host: 'http://localhost:8080')
+    RabbitMqConsumers::Worker::ReviewElasticSearchWriter.new(log_level: RSpec::LOG_LEVEL, bucket_name: 'reviews-test')
+    RabbitMqConsumers::Worker::RevieworldDataRetriever.new(log_level: RSpec::LOG_LEVEL, timeout: 0.1, host: 'http://localhost:8080')
 
     HttpServer.start(response)
   end
 
   def write_review_create_entry_to_rabbit_mq
-    Producer.new(Exchanges.reviews).publish({id: 14}, :key => 'review.create', ack: true)
+    RabbitMqConsumers::Producer.new(RabbitMqConsumers::Exchanges.reviews).publish({id: 14}, :key => 'review.create', ack: true)
   end
 
   def check_torque_for_entry
