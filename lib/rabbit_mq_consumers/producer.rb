@@ -1,9 +1,9 @@
 module RabbitMqConsumers
   class Producer
     def initialize(exchange, options={})
-      @exchange = exchange
-      @log_level  = options.delete(:log_level) || :error
-      @options    = options
+      @exchange  = exchange
+      @log_level = options.delete(:log_level) || :error
+      @options   = options
     end
 
     def log(level, message)

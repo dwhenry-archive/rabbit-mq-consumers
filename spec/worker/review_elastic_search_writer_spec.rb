@@ -14,7 +14,7 @@ describe RabbitMqConsumers::Worker::RevieworldDataRetriever do
   it 'will add record to elasticsearch' do
     #@channel.queue(Worker::ReviewElasticSearchWriter::QUEUE_NAME).delete
 
-    subsitute_revieworld_data({class: :reviews, format: :torque}, message)
+    substitute_revieworld_data({class: :reviews, format: :torque}, message)
 
     RabbitMqConsumers::Worker::ReviewElasticSearchWriter.new(log_level: RSpec::LOG_LEVEL, bucket_name: 'reviews-test')
     Torque.should_receive(:to).with('reviews-test', message)
@@ -28,7 +28,7 @@ describe RabbitMqConsumers::Worker::RevieworldDataRetriever do
     }
   end
 
-  def subsitute_revieworld_data(matcher, response)
+  def substitute_revieworld_data(matcher, response)
     requests_queue = @channel.queue("revieworld.data-request", :auto_delete => true)
 
     # requests_queue = @channel.queue("revieworld.data-request", :exclusive => true, :auto_delete => true)
