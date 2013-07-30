@@ -1,13 +1,12 @@
-Rabbit MQ Consumers
-===================
+=Rabbit MQ Consumers
 
-== Supervisor
+==Supervisor
 
 Is a Celluloid supervisor whose responsibilities including the starting and running of worker processes.
 
 TODO: Explain how you can configure which workers and numbers of each worker you wish the supervisor to manage
 
-== Worker
+==Worker
 
 A worker's behaviour is to subscribe a consumer to a RabbitMQ queue, applying relevant settings.
 
@@ -35,7 +34,7 @@ You may also define a callback on the queue, this must return a AMQP queue objec
 start { |queue| queue.bind(Exchanges.default, routing_key: 'routing.keys') }
 ```
 
-== Consumer
+==Consumer
 
 A consumer is responsible for handling messages passed to it.
 
@@ -59,14 +58,14 @@ def handle_message(payload)
 end
 ```
 
-== Producer
+==Producer
 
 Wraps RabbitMQ exchange publish method into a class. This can be included in consumers who wish to publish
 onto additional exchanges.
 
 You may subclass ```RabbitMqConsumers::Producer``` and implement your own custom publisher.
 
-== Exchange
+==Exchange
 
 This gives a global end-point for accessing named exchanges, avoiding the passing of named exchanges or strings.
 
@@ -83,23 +82,20 @@ class MyExchanges < RabbitMqConsumers::Exchanges
 end
 ```
 
-== Logger
+==Logger
 
 TODO: Implement
 
-Consumer Examples
-=================
+=Consumer Examples
 
 TODO: How to write a good consumer class
 TODO: How to write a consumer that can publish
 
-Testing
-=======
+=Testing
 
 TODO: Provide example about how to implement your own tests for a worker, consumer and publisher.
 
-running the test using nailgun
-==============================
+=running the test using nailgun
 
 Start a nailgun server in the background:
 
